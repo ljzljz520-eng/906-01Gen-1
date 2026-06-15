@@ -1,0 +1,61 @@
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  font-family: "Noto Sans SC", "PingFang SC", system-ui, -apple-system, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background: #F3F4F6;
+  color: #111827;
+}
+
+@layer utilities {
+  .hatch-pattern {
+    background-image: repeating-linear-gradient(
+      135deg,
+      rgba(30, 58, 138, 0.06) 0px,
+      rgba(30, 58, 138, 0.06) 2px,
+      transparent 2px,
+      transparent 10px
+    );
+  }
+  .grid-bg {
+    background-image:
+      linear-gradient(rgba(30, 58, 138, 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(30, 58, 138, 0.05) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+  .diagonal-stripe {
+    background-image: repeating-linear-gradient(
+      45deg,
+      rgba(255,255,255,0.04),
+      rgba(255,255,255,0.04) 10px,
+      rgba(255,255,255,0.08) 10px,
+      rgba(255,255,255,0.08) 20px
+    );
+  }
+  .scrollbar-industrial::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  .scrollbar-industrial::-webkit-scrollbar-track {
+    background: #E5E7EB;
+  }
+  .scrollbar-industrial::-webkit-scrollbar-thumb {
+    background: #9CA3AF;
+    border-radius: 0;
+  }
+  .scrollbar-industrial::-webkit-scrollbar-thumb:hover {
+    background: #6B7280;
+  }
+}
