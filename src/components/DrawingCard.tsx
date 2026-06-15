@@ -9,7 +9,8 @@ interface Props {
 }
 
 export default function DrawingCard({ drawing, onClick, index = 0 }: Props) {
-  const { partNumber, name, process, equipmentModel, thumbnail, activeVersion, totalVersions, project, createdAt } = drawing;
+  const { partNumber, name, process, equipmentModel, thumbnail, totalVersions, project, createdAt, allStatuses } = drawing;
+  const statusesToShow = allStatuses && allStatuses.length > 0 ? allStatuses : [drawing.activeVersion?.status || 'ACTIVE'];
 
   const fmtSize = (b: number) => {
     if (!b) return '-';
@@ -32,10 +33,10 @@ export default function DrawingCard({ drawing, onClick, index = 0 }: Props) {
             <Hash className="h-12 w-12 text-industrial-400" strokeWidth={1.5} />
           </div>
         )}
-        <div className="absolute left-2 top-2 flex items-center gap-1.5">
-          {activeVersion && (
-            <StatusBadge status={activeVersion.status} pulse={activeVersion.status === 'ACTIVE'} />
-          )}
+        <div className="absolute left-2 top-2 flex items-center gap-1.5 flex-wrap max-w-[80%]">
+          {statusesToShow.map((s, i) => (
+            <StatusBadge key={s + i} status={s} pulse={s === 'ACTIVE'} />
+          ))}
         </div>
         <div className="absolute right-2 top-2 rounded bg-steel-900/85 px-2 py-0.5 font-mono text-[11px] font-bold text-white">
           {totalVersions || 1} 版

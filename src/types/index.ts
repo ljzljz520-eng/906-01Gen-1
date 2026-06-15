@@ -20,6 +20,7 @@ export interface Drawing {
   thumbnail: string;
   activeVersion?: DrawingVersion;
   totalVersions?: number;
+  allStatuses?: VersionStatus[];
 }
 
 export interface DrawingVersion {

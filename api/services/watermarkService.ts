@@ -14,6 +14,46 @@ export interface WatermarkInfo {
 const A4_WIDTH = 595.28;
 const A4_HEIGHT = 841.89;
 
+const PROCESS_MAP: Record<string, string> = {
+  '铣削': 'Milling',
+  '焊接': 'Welding',
+  '铸造': 'Casting',
+  '锻造': 'Forging',
+  '车削': 'Turning',
+  '磨削': 'Grinding',
+};
+
+const DEPT_MAP: Record<string, string> = {
+  '机械设计部': 'Mech. Design',
+  '工艺工程部': 'Process Eng.',
+  '文档管控中心': 'Doc. Control',
+};
+
+const NAME_MAP: Record<string, string> = {
+  '张工程师': 'ENG. ZHANG',
+  '李工程师': 'ENG. LI',
+  '王管理员': 'ADM. WANG',
+  '张工': 'ENG. ZHANG',
+  '李工': 'ENG. LI',
+  '王工': 'ENG. WANG',
+};
+
+const toAscii = (s: string, fallback = ''): string => {
+  if (!s) return fallback;
+  const clean = s.normalize('NFKD').replace(/[^\x20-\x7E]/g, (c) => {
+    if (NAME_MAP[c]) return NAME_MAP[c];
+    if (PROCESS_MAP[c]) return PROCESS_MAP[c];
+    if (DEPT_MAP[c]) return DEPT_MAP[c];
+    return '';
+  }).trim();
+  return clean || fallback || 'N/A';
+};
+
+const asciiName = (s: string): string => toAscii(s, s.replace(/[^\x20-\x7E]/g, ''));
+const asciiProcess = (s: string): string => PROCESS_MAP[s] || toAscii(s, 'General');
+const asciiDept = (s: string): string => DEPT_MAP[s] || toAscii(s, 'Engineering');
+const asciiUser = (s: string): string => NAME_MAP[s] || toAscii(s, 'USER');
+
 const makeDiagramPage = (drawing: Drawing, version: DrawingVersion): PDFDocument => {
   throw new Error('placeholder');
 };
@@ -27,6 +67,12 @@ export const generateMockBasePdf = async (
   const helveticaBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
   const helvetica = await pdfDoc.embedFont(StandardFonts.Helvetica);
 
+  const safeDrawingName = asciiName(drawing.name);
+  const safeProject = asciiName(drawing.project);
+  const procText = asciiProcess(drawing.process);
+  const safeEquipment = asciiName(drawing.equipmentModel);
+  const safeReleasedBy = asciiUser(version.releasedBy);
+
   for (let p = 0; p < totalPages; p++) {
     const page = pdfDoc.addPage([A4_WIDTH, A4_HEIGHT]);
     const { width, height } = page.getSize();
@@ -36,25 +82,25 @@ export const generateMockBasePdf = async (
     page.drawLine({ start: { x: 30, y: height - 90 }, end: { x: width - 30, y: height - 90 }, color: rgb(0.1, 0.1, 0.1), thickness: 0.8 });
     page.drawLine({ start: { x: 30, y: 70 }, end: { x: width - 30, y: 70 }, color: rgb(0.1, 0.1, 0.1), thickness: 0.8 });
 
-    page.drawText('ENGINEERING DRAWING  /  工程图纸', {
+    page.drawText('ENGINEERING DRAWING', {
       x: 45, y: height - 70, size: 16, font: helveticaBold, color: rgb(0.12, 0.23, 0.54),
     });
-    page.drawText(`DWG NO / 图纸编号: ${drawing.partNumber}`, {
+    page.drawText(`DWG NO.: ${drawing.partNumber}`, {
       x: 45, y: height - 110, size: 11, font: helveticaBold, color: rgb(0.1, 0.1, 0.1),
     });
-    page.drawText(`TITLE / 标题: ${drawing.name}`, {
+    page.drawText(`TITLE: ${safeDrawingName}`, {
       x: 45, y: height - 128, size: 11, font: helvetica, color: rgb(0.1, 0.1, 0.1),
     });
-    page.drawText(`REV / 版本: ${version.version}   STATUS / 状态: ${version.status}`, {
+    page.drawText(`REV: ${version.version}   STATUS: ${version.status}`, {
       x: 45, y: height - 146, size: 11, font: helvetica, color: rgb(0.1, 0.1, 0.1),
     });
-    page.drawText(`PROCESS / 工艺: ${drawing.process}   EQUIPMENT / 设备: ${drawing.equipmentModel}`, {
+    page.drawText(`PROCESS: ${procText}   EQUIPMENT: ${safeEquipment}`, {
       x: 45, y: height - 164, size: 10, font: helvetica, color: rgb(0.3, 0.3, 0.3),
     });
-    page.drawText(`PROJECT / 项目: ${drawing.project}`, {
+    page.drawText(`PROJECT: ${safeProject}`, {
       x: 45, y: height - 182, size: 10, font: helvetica, color: rgb(0.3, 0.3, 0.3),
     });
-    page.drawText(`RELEASED BY / 发布人: ${version.releasedBy}   DATE / 日期: ${version.releaseDate}`, {
+    page.drawText(`RELEASED BY: ${safeReleasedBy}   DATE: ${version.releaseDate}`, {
       x: 45, y: height - 200, size: 10, font: helvetica, color: rgb(0.3, 0.3, 0.3),
     });
 
@@ -81,7 +127,7 @@ export const generateMockBasePdf = async (
       page.drawText(`${i * 40}`, { x: x0 - 5, y: cy - 102, size: 7, font: helvetica, color: rgb(0.5, 0.5, 0.5) });
     }
 
-    page.drawText('FIG. 1  MAIN VIEW  /  主视图', {
+    page.drawText('FIG. 1  MAIN VIEW', {
       x: cx - 180, y: cy - 108, size: 9, font: helveticaBold, color: rgb(0.3, 0.3, 0.3),
     });
 
@@ -105,8 +151,12 @@ export const addWatermarkToPdf = async (
   const helvetica = await pdfDoc.embedFont(StandardFonts.Helvetica);
   const pages = pdfDoc.getPages();
 
-  const line1 = `PROJECT: ${info.projectName}  |  PART: ${info.partNumber} ${info.version}`;
-  const line2 = `DOWNLOADED BY: ${info.userName} / ${info.department}`;
+  const safeProject = asciiName(info.projectName);
+  const safeUserName = asciiUser(info.userName);
+  const safeDept = asciiDept(info.department);
+
+  const line1 = `PROJECT: ${safeProject}  |  PART: ${info.partNumber} ${info.version}`;
+  const line2 = `DOWNLOADED BY: ${safeUserName} / ${safeDept}`;
   const line3 = `TIME: ${info.downloadTime}`;
   const line4 = `WM-CODE: ${info.watermarkCode}  -  CONFIDENTIAL -`;
 

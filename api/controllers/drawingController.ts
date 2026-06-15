@@ -56,9 +56,10 @@ export const searchDrawings = (req: Request, res: Response): void => {
     list = list.filter((d) => filteredDrawingIds.has(d.id));
   }
 
-  const withActive = list.map((d: Drawing & { activeVersion?: DrawingVersion; totalVersions?: number }) => {
+  const withActive = list.map((d: Drawing & { activeVersion?: DrawingVersion; totalVersions?: number; allStatuses?: VersionStatus[] }) => {
     const versions = drawingVersions.filter((v) => v.drawingId === d.id);
-    return { ...d, activeVersion: getActiveVersion(d.id), totalVersions: versions.length };
+    const statuses = Array.from(new Set(versions.map((v) => v.status)));
+    return { ...d, activeVersion: getActiveVersion(d.id), totalVersions: versions.length, allStatuses: statuses };
   });
 
   withActive.sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
